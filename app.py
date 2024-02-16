@@ -24,29 +24,30 @@ def search_in_file(file_path, pattern):
 def search_in_file_content(file, pattern):
     results_data = []
     current_message = []
-    inside_message = False
 
     try:
-        lines = file.readlines()
-        for line in lines:
-            if cancel_search:  # Проверка на отмену поиска
+        for line in file:
+            if cancel_search:
                 break
 
+            line = line.strip()
+
+            # Изменено условие для поиска паттерна в каждой строке
             if re.search(pattern, line, re.IGNORECASE):
-                # Начало нового сообщения
-                inside_message = True
-                current_message = [line.strip()]
-            elif inside_message:
-                # Добавляем строки сообщения до следующей временной метки
-                current_message.append(line.strip())
-                if re.search(r"\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}:\d{3}", line):
-                    inside_message = False
-                    results_data.append('\n'.join(current_message))
+                current_message.append(line)
+            elif current_message:
+                results_data.append('\n'.join(current_message))
+                current_message = []
+
+        # Добавлено условие для последней строки файла
+        if current_message:
+            results_data.append('\n'.join(current_message))
 
     except UnicodeDecodeError as e:
         print(f"Error decoding file: {e}")
-    
+
     return results_data
+
 
 def update_progress(file_name):
     progress_bar['value'] += 1
